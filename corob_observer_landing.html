@@ -1,0 +1,228 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  .ob { --ink:#060708; --teal:#16E0C8; --ember:#FF8A5C; --paper:#ECE7DD; --dim:rgba(236,231,221,.38);
+    position:relative; width:100%; height:660px; background:var(--ink); border-radius:14px; overflow:hidden;
+    font-family:'Space Grotesk',sans-serif; color:var(--paper); }
+  @media (hover:hover) and (pointer:fine){ .ob.go{ cursor:none; } }
+
+  .ob canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; z-index:1; }
+
+  .ob-grid{ position:absolute; inset:0; z-index:0; opacity:0; transition:opacity 1.2s ease .2s;
+    background-image:linear-gradient(rgba(22,224,200,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(22,224,200,.04) 1px,transparent 1px);
+    background-size:46px 46px; }
+  .ob.go .ob-grid{ opacity:1; }
+  .ob-vig{ position:absolute; inset:0; z-index:2; pointer-events:none; box-shadow:inset 0 0 200px 50px rgba(0,0,0,.9); }
+
+  .ob-cn{ position:absolute; width:26px; height:26px; z-index:5; border:1.5px solid var(--teal); opacity:0; transition:opacity .6s ease; }
+  .ob.go .ob-cn{ opacity:.85; }
+  .ob-cn.tl{ top:18px; left:18px; border-right:0; border-bottom:0; }
+  .ob-cn.tr{ top:18px; right:18px; border-left:0; border-bottom:0; }
+  .ob-cn.bl{ bottom:18px; left:18px; border-right:0; border-top:0; }
+  .ob-cn.br{ bottom:18px; right:18px; border-left:0; border-top:0; }
+
+  .ob-mark{ position:absolute; top:30px; left:34px; z-index:6; font-weight:700; font-size:15px; letter-spacing:.34em; text-transform:uppercase; }
+  .ob-mark b{ color:var(--teal); }
+  .ob-status{ position:absolute; top:32px; right:34px; z-index:6; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.22em; color:var(--dim); text-transform:uppercase; }
+  .ob-status .dot{ color:var(--ember); animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.25} }
+
+  .ob-stmt{ position:absolute; left:7%; top:50%; transform:translateY(-50%); z-index:6; max-width:46%; }
+  .ob-stmt .l{ display:block; overflow:hidden; }
+  .ob-stmt .l span{ display:block; font-weight:700; line-height:.96; letter-spacing:-.02em; font-size:clamp(2.6rem,6.6vw,5rem); transform:translateY(108%); }
+  .ob.go .ob-stmt .l span{ transition:transform 1s cubic-bezier(.16,1,.3,1); transform:translateY(0); }
+  .ob.go .ob-stmt .l:nth-child(2) span{ transition-delay:.08s; }
+  .ob-stmt .em{ color:var(--ember); }
+  .ob-sub{ margin-top:22px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; color:var(--dim); line-height:1.7; max-width:340px; opacity:0; }
+  .ob.go .ob-sub{ transition:opacity .9s ease .7s; opacity:1; }
+  .ob-sub b{ color:var(--teal); font-weight:500; }
+
+  .ob-links{ position:absolute; bottom:54px; left:34px; z-index:6; display:flex; gap:22px; flex-wrap:wrap; max-width:60%; opacity:0; }
+  .ob.go .ob-links{ transition:opacity .9s ease .9s; opacity:1; }
+  .ob-links a{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim); text-decoration:none; transition:color .3s,text-shadow .3s; }
+  .ob-links a:hover{ color:var(--teal); text-shadow:0 0 14px rgba(22,224,200,.6); }
+
+  .ob-riddle{ position:absolute; bottom:54px; right:34px; z-index:6; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.18em; color:rgba(255,138,92,.55); cursor:pointer; opacity:0; user-select:none; transition:color .3s; }
+  .ob.go .ob-riddle{ transition:opacity .9s ease 1s, color .3s; opacity:1; }
+  .ob-riddle:hover{ color:var(--ember); }
+
+  .ob-mq{ position:absolute; bottom:0; left:0; right:0; z-index:6; height:30px; display:flex; align-items:center; border-top:1px solid rgba(22,224,200,.12); overflow:hidden; background:rgba(6,7,8,.6); opacity:0; }
+  .ob.go .ob-mq{ transition:opacity .9s ease 1.1s; opacity:1; }
+  .ob-mq-tr{ display:flex; white-space:nowrap; animation:mq 32s linear infinite; }
+  .ob-mq-tr span{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.26em; color:var(--dim); text-transform:uppercase; padding:0 26px; }
+  .ob-mq-tr span i{ color:var(--ember); font-style:normal; }
+  @keyframes mq{ to{ transform:translateX(-50%); } }
+
+  .ob-cur{ position:absolute; z-index:9; pointer-events:none; left:0; top:0; mix-blend-mode:difference; opacity:0; }
+  .ob.go .ob-cur{ opacity:1; }
+  .ob-cur .ring{ position:absolute; width:34px; height:34px; margin:-17px 0 0 -17px; border:1px solid var(--paper); border-radius:50%; transition:width .25s,height .25s,margin .25s; }
+  .ob-cur .dot{ position:absolute; width:4px; height:4px; margin:-2px 0 0 -2px; background:var(--paper); border-radius:50%; }
+  .ob.near .ob-cur .ring{ width:60px; height:60px; margin:-30px 0 0 -30px; }
+
+  .ob-decode{ position:absolute; bottom:84px; right:34px; z-index:7; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.2em; color:var(--ember); opacity:0; transform:translateY(6px); transition:opacity .5s,transform .5s; pointer-events:none; text-align:right; }
+  .ob-decode.show{ opacity:1; transform:translateY(0); }
+
+  @media (max-width:640px){
+    .ob-stmt{ left:0; right:0; top:auto; bottom:160px; transform:none; max-width:100%; text-align:center; padding:0 24px; }
+    .ob-stmt .l span{ font-size:clamp(2.4rem,13vw,3.4rem); }
+    .ob-sub{ margin:18px auto 0; }
+    .ob-links{ left:0; right:0; justify-content:center; bottom:62px; max-width:100%; }
+    .ob-riddle{ left:0; right:0; text-align:center; bottom:40px; }
+    .ob-decode{ left:0; right:0; text-align:center; bottom:104px; }
+  }
+</style>
+
+<div class="ob" id="ob">
+  <h2 class="sr-only">CoRob — Cognitive Robotics Lab. Оживляем неживое. Короб существует в суперпозиции, пока на него не смотрят; ваше внимание возвращает его к жизни.</h2>
+
+  <div class="ob-grid"></div>
+  <canvas id="obCanvas"></canvas>
+  <div class="ob-vig"></div>
+
+  <span class="ob-cn tl"></span><span class="ob-cn tr"></span>
+  <span class="ob-cn bl"></span><span class="ob-cn br"></span>
+
+  <div class="ob-mark">Co<b>Rob</b></div>
+  <div class="ob-status"><span class="dot">●</span> OBSERVING — BAUMAN MTU</div>
+
+  <div class="ob-stmt">
+    <span class="l"><span>Оживляем</span></span>
+    <span class="l"><span class="em">неживое</span></span>
+    <div class="ob-sub"><b>COGNITIVE ROBOTICS LAB</b><br>инженерия · нейросети · философия машин</div>
+  </div>
+
+  <nav class="ob-links">
+    <a href="https://youtube.com/@corob404" target="_blank" rel="noopener">YouTube</a>
+    <a href="https://instagram.com/corob404/" target="_blank" rel="noopener">Instagram</a>
+    <a href="https://t.me/coroblab" target="_blank" rel="noopener">Telegram</a>
+    <a href="https://github.com/coroblab" target="_blank" rel="noopener">GitHub</a>
+    <a href="mailto:corob404f@gmail.com">Email</a>
+  </nav>
+
+  <div class="ob-riddle" id="obRiddle">[ 0x434F524F42 ]</div>
+  <div class="ob-decode" id="obDecode">КОРОБ ОТКРЫТ ДЛЯ ЛЮБОПЫТНЫХ →<br>тех, кто декодирует</div>
+
+  <div class="ob-mq"><div class="ob-mq-tr" id="obMq"></div></div>
+
+  <div class="ob-cur"><div class="ring"></div><div class="dot"></div></div>
+</div>
+
+<script>
+(function(){
+  const ob = document.getElementById('ob');
+  const canvas = document.getElementById('obCanvas');
+  const ctx = canvas.getContext('2d');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+
+  const mqUnit = 'оживляем неживое <i>·</i> COGNITIVE ROBOTICS <i>·</i> ящик Шрёдингера <i>·</i> 55.766°N 37.684°E <i>·</i> специмен жив <i>·</i> ';
+  document.getElementById('obMq').innerHTML = '<span>'+mqUnit.repeat(4)+'</span><span>'+mqUnit.repeat(4)+'</span>';
+
+  let W=0,H=0,narrow=false;
+  function resize(){ W=ob.clientWidth; H=ob.clientHeight; narrow=W<640;
+    canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  resize(); window.addEventListener('resize', resize);
+
+  function makeGlow(r,g,b){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
+    const gr=x.createRadialGradient(64,64,0,64,64,64);
+    gr.addColorStop(0,`rgba(${r},${g},${b},1)`); gr.addColorStop(.28,`rgba(${r},${g},${b},.5)`); gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
+    x.fillStyle=gr; x.fillRect(0,0,128,128); return c; }
+  const glowEmber=makeGlow(255,138,92);
+
+  let mx=W/2,my=H/2,tmx=W/2,tmy=H/2,lastMove=-9999,moveE=0,plx=W/2,ply=W/2;
+  const cur=ob.querySelector('.ob-cur'); let crx=W/2,cry=H/2;
+  ob.addEventListener('pointermove',e=>{ const r=ob.getBoundingClientRect(); const nx=e.clientX-r.left, ny=e.clientY-r.top;
+    const sp=Math.hypot(nx-plx,ny-ply); tmx=nx; tmy=ny; lastMove=performance.now(); moveE=Math.min(1,moveE+sp*0.012);
+    const burst=Math.min(5,Math.round(sp/8)); for(let i=0;i<burst;i++) spark(nx,ny,sp); plx=nx; ply=ny; });
+
+  function bc(){ return narrow ? [W*0.5, H*0.30] : [W*0.66, H*0.5]; }
+
+  const S0=95, F=440;
+  const verts=[[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1],[-1,1,-1],[1,1,-1],[1,1,1],[-1,1,1]];
+  const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  const flaps=[ {e:[0,1],n:[0,0,-1]},{e:[1,2],n:[1,0,0]},{e:[2,3],n:[0,0,1]},{e:[3,0],n:[-1,0,0]} ];
+  const FLAP_OUT=0.7, FLAP_UP=0.5; // half-length flaps
+
+  function rot(v,rx,ry){ let x=v[0]*Math.cos(ry)+v[2]*Math.sin(ry), z=-v[0]*Math.sin(ry)+v[2]*Math.cos(ry), y=v[1];
+    let y2=y*Math.cos(rx)-z*Math.sin(rx), z2=y*Math.sin(rx)+z*Math.cos(rx); return [x,y2,z2]; }
+  function project(v,cx,cy,s){ const zc=v[2]*s; const sc=F/(F+zc); return [cx+v[0]*s*sc, cy+v[1]*s*sc, v[2], sc]; }
+
+  const sparks=[];
+  function spark(x,y,sp){ if(sparks.length>200)return; const a=Math.random()*Math.PI*2,v=.4+Math.random()*(1.2+sp*.05);
+    sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.4,life:0,max:24+Math.random()*30,size:8+Math.random()*12+sp*.18}); }
+
+  let blink=0,blinkClk=0,nextBlink=1600,sacc={x:0,y:0,t:0};
+  const eyePts=[[-0.4,-0.12,0],[0.4,-0.12,0]];
+
+  let intro=0, t=0;
+  function loop(){
+    t += reduced?0.0015:0.0045; intro=Math.min(1,intro+0.018);
+    const now=performance.now(); const idle=now-lastMove>2200;
+    if(idle){ const it=now*0.00035; tmx=bc()[0]+Math.sin(it)*W*0.12; tmy=bc()[1]+Math.sin(it*1.4+1)*H*0.12; }
+    mx+=(tmx-mx)*0.08; my+=(tmy-my)*0.08; moveE*=0.95;
+    crx+=(tmx-crx)*0.18; cry+=(tmy-cry)*0.18;
+    if(fine){ cur.style.transform=`translate(${crx}px,${cry}px)`; }
+
+    const [cx,cy]=bc();
+    const dB=Math.hypot(mx-cx,my-cy); const prox=Math.max(0,1-dB/(Math.min(W,H)*0.5));
+    const energy=Math.min(1,Math.max(idle?0:prox*0.7,moveE));
+    ob.classList.toggle('near', prox>0.35);
+    const ghost=(1-energy)*(idle?1:0.5);
+
+    ctx.clearRect(0,0,W,H);
+
+    const ry=((mx/W)-.5)*0.9 + t*0.12;
+    const rx=((my/H)-.5)*-0.55 + Math.sin(t*0.6)*0.05;
+    const s=S0*(0.5+0.5*easeOut(intro));
+    const P=verts.map(v=>project(rot(v,rx,ry),cx,cy,s));
+
+    ctx.globalCompositeOperation='lighter';
+    blit(glowEmber,cx,cy,Math.min(W,H)*0.6,(0.05+energy*0.13)*intro);
+
+    function drawWire(off,col,a){
+      ctx.globalCompositeOperation='lighter'; ctx.lineWidth=1.2;
+      edges.forEach(ed=>{ const p1=P[ed[0]],p2=P[ed[1]]; const za=(p1[2]+p2[2])/2; const depth=0.45+0.55*(1-(za+1)/2);
+        ctx.strokeStyle=`rgba(${col},${a*depth})`; ctx.beginPath(); ctx.moveTo(p1[0]+off,p1[1]); ctx.lineTo(p2[0]+off,p2[1]); ctx.stroke(); });
+      flaps.forEach(fl=>{ const i0=fl.e[0],i1=fl.e[1]; const v0=verts[i0],v1=verts[i1];
+        const o0=[v0[0]+fl.n[0]*FLAP_OUT, v0[1]-FLAP_UP, v0[2]+fl.n[2]*FLAP_OUT];
+        const o1=[v1[0]+fl.n[0]*FLAP_OUT, v1[1]-FLAP_UP, v1[2]+fl.n[2]*FLAP_OUT];
+        const po0=project(rot(o0,rx,ry),cx,cy,s), po1=project(rot(o1,rx,ry),cx,cy,s);
+        ctx.strokeStyle=`rgba(${col},${a*0.5})`; ctx.beginPath();
+        ctx.moveTo(P[i0][0]+off,P[i0][1]); ctx.lineTo(po0[0]+off,po0[1]); ctx.lineTo(po1[0]+off,po1[1]); ctx.lineTo(P[i1][0]+off,P[i1][1]); ctx.stroke(); });
+    }
+    if(ghost>0.02){ drawWire(-ghost*7,'255,138,92',0.22*ghost*intro); drawWire(ghost*7,'22,224,200',0.22*ghost*intro); }
+    drawWire(0,'22,224,200',(0.5+energy*0.4)*intro);
+
+    blinkClk+=16; if(blinkClk>nextBlink){blink=1;blinkClk=0;nextBlink=1700+Math.random()*3400;}
+    if(blink>0){blink-=0.12; if(blink<0)blink=0;}
+    const open=1-Math.sin(Math.min(blink,1)*Math.PI);
+    if(now-sacc.t>700+Math.random()*1100) sacc={x:(Math.random()-.5)*3,y:(Math.random()-.5)*3,t:now};
+    ctx.globalCompositeOperation='lighter';
+    eyePts.forEach(ep=>{ const pe=project(rot(ep,rx,ry),cx,cy,s); const er=10*pe[3]*(1+energy*0.4);
+      const dx=mx-pe[0],dy=my-pe[1],dl=Math.hypot(dx,dy)||1;
+      const ox=(dx/dl)*Math.min(dl*0.05,er*0.6)+sacc.x, oy=(dy/dl)*Math.min(dl*0.05,er*0.6)+sacc.y;
+      blit(glowEmber,pe[0],pe[1],er*7*(0.7+energy*0.5),(0.4+energy*0.5)*intro);
+      ctx.save(); ctx.translate(pe[0]+ox,pe[1]+oy); ctx.scale(1,Math.max(0.06,open));
+      blit(glowEmber,0,0,er*2.6,0.95*intro);
+      ctx.fillStyle=`rgba(255,247,240,${0.98*intro})`; ctx.beginPath(); ctx.arc(0,0,er*0.5,0,Math.PI*2); ctx.fill(); ctx.restore(); });
+
+    for(let i=sparks.length-1;i>=0;i--){const sp=sparks[i]; sp.x+=sp.vx; sp.y+=sp.vy; sp.vy+=.012; sp.vx*=.96; sp.vy*=.96; sp.life++;
+      const k=1-sp.life/sp.max; if(k<=0){sparks.splice(i,1);continue;} blit(glowEmber,sp.x,sp.y,sp.size*k,k*0.8); }
+
+    ctx.globalCompositeOperation='source-over';
+    requestAnimationFrame(loop);
+  }
+  function blit(sp,x,y,sz,a){ ctx.globalAlpha=Math.max(0,a); ctx.drawImage(sp,x-sz/2,y-sz/2,sz,sz); ctx.globalAlpha=1; }
+  function easeOut(x){ return 1-Math.pow(1-x,3); }
+  loop();
+
+  const riddle=document.getElementById('obRiddle'), decode=document.getElementById('obDecode');
+  let open2=false;
+  riddle.addEventListener('click',()=>{ open2=!open2; decode.classList.toggle('show',open2);
+    riddle.textContent=open2?'[ CoRob ]':'[ 0x434F524F42 ]'; });
+
+  setTimeout(()=>ob.classList.add('go'),60);
+})();
+</script>
